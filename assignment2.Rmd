@@ -63,7 +63,7 @@ library(cowplot)
 
 Read in EJScreen data and filter to Los Angeles County
 (5 points)
-```{r include=TRUE, eval=FALSE, warning=FALSE, error=FALSE}}
+```{r include=TRUE, eval=FALSE, warning=FALSE, error=FALSE}
 ejscreen <- st_read("../data/EJSCREEN_2023_BG_StatePct_with_AS_CNMI_GU_VI.gdb")
 
 california <- ejscreen %>%
@@ -88,6 +88,7 @@ LA_wastewater_discharge <- tm_shape(LAcounty) +
               fill.legend = tm_legend(title = 'Wastewater Discharge by Census Block Groups')) + 
   tm_graticules() 
 
+LA_wastewater_discharge
 ```
 Find the percent of census block groups that have:  
 - less than 5% of the population is considered low income
@@ -107,7 +108,7 @@ Find the percent of census block groups that are:
 ```
 
 Import redlining information for Los Angeles.
-```{r }
+```{r include=TRUE, eval=FALSE, warning=FALSE, error=FALSE}
 LA_redlining <- st_read("https://dsl.richmond.edu/panorama/redlining/static/downloads/geojson/CALosAngeles1939.geojson") %>%
   st_make_valid()
 
@@ -115,9 +116,31 @@ LA_redlining <- st_read("https://dsl.richmond.edu/panorama/redlining/static/down
 
 Make a map of historical redlining boundaries, colored by HOLC grade.
 (5 points)
-```{r }
+```{r  include=TRUE}
+LA_HOLC_grade <- LA_redlining %>% 
+  mutate_at('name', ~replace_na(., "Los Angeles County")) %>% 
+  rename("CNTY_NAME" = "name")
+
+```
 
 
+```{r  include=TRUE}
+tmap_mode('plot')
+
+LA_redlining_map <- tm_shape(LAcounty) +
+  tm_shape(LA_HOLC_grade) + 
+  tm_polygons(col = 'holc_id') +
+  tm_graticules()
+
+LA_redlining_map
+```
+
+
+```{r  include=TRUE}
+redlining_map <- tm_shape(LAcounty) + 
+  tm_shape(LA_redlining)
+
+redlining_map
 ```
 
 Find the number of census block groups that fall within areas with HOLC grades
