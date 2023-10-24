@@ -1,8 +1,8 @@
 ---
 title: 'EDS 223: assignment 2'
-author: "{student name and collaborators}"
+author: "Sofia Ingersoll"
 output: html_document
-date: "2023-10-17"
+date: "2023-10-28"
 ---
 
 ```{r setup, include=FALSE}
@@ -50,20 +50,43 @@ We will be working observations of birds from 2021 onward.
 
 ### Investigate the legacy of redlining in current environmental (in)justice
 Load relevant packages.
-```{r }
-
+```{r include=TRUE, eval=FALSE}
+library(tidyverse)
+library(sf)
+library(patchwork)
+library(raster)
+library(ggspatial)
+library(tmap)
+library(tmaptools)
+library(cowplot)
 ```
 
 Read in EJScreen data and filter to Los Angeles County
 (5 points)
-```{r }
+```{r include=TRUE, eval=FALSE, warning=FALSE, error=FALSE}}
+ejscreen <- st_read("../data/EJSCREEN_2023_BG_StatePct_with_AS_CNMI_GU_VI.gdb")
 
+california <- ejscreen %>%
+  filter(ST_ABBREV == "CA") 
+
+LAcounty <- ejscreen %>%
+  filter(CNTY_NAME %in% c("Los Angeles County"))
+
+LAcounty_mean <- aggregate(LAcounty, by = list(LAcounty$CNTY_NAME), FUN = mean)
+
+LAcounty_blockgroup_centroids <- st_centroid(LAcounty)
 ```
 
-Make a map of wastewater discharge by census block groups. Indicate which census block groups are above the 95th percentile of national values for wastewater discharge by adding a centroid.
+Make a map of wastewater discharge (PWDIS) by census block groups. Indicate which census block groups are above the 95th percentile of national values for wastewater discharge by adding a centroid.
 (10 points)
 ```{r }
+tmap_mode('plot')
 
+LA_wastewater_discharge <- tm_shape(LAcounty) +
+   tm_polygons(LAcounty_blockgroup_centroids, 'PWDIS', 
+              #fill.scale = tm_scale_intervals(values ='PuRd'), 
+              fill.legend = tm_legend(title = 'Wastewater Discharge by Census Block Groups')) + 
+  tm_graticules() 
 
 ```
 Find the percent of census block groups that have:  
@@ -117,6 +140,15 @@ Summarize current conditions based on EJScreen data within historical redlining 
 
 Please write 2-3 sentences reflecting on these results.
 (5 points)
+
+
+
+
+
+
+
+
+
 
 ### Investigate the legacy of redlining in biodiversity observations
 
