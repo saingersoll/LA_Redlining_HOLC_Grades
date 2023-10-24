@@ -64,7 +64,9 @@ library(cowplot)
 Read in EJScreen data and filter to Los Angeles County
 (5 points)
 ```{r include=TRUE, eval=FALSE, warning=FALSE, error=FALSE}
-ejscreen <- st_read("../data/EJSCREEN_2023_BG_StatePct_with_AS_CNMI_GU_VI.gdb")
+ejscreen_state <- st_read("../data/EJSCREEN_2023_BG_StatePct_with_AS_CNMI_GU_VI.gdb")
+
+ejscreen_national<- st_read("../data/EJSCREEN_2023_BG_with_AS_CNMI_GU_VI.gdb")
 
 california <- ejscreen %>%
   filter(ST_ABBREV == "CA") 
@@ -79,20 +81,71 @@ LAcounty_blockgroup_centroids <- st_centroid(LAcounty)
 
 Make a map of wastewater discharge (PWDIS) by census block groups. Indicate which census block groups are above the 95th percentile of national values for wastewater discharge by adding a centroid.
 (10 points)
+
+# Psuedo Code Game Planning
+dataset(s):
+- EJSCREEN_2023_BG_with_AS_CNMI_GU_VI.gdb  which is the national-level block group data, then the percentile is based off all block group data from 50 states + territories. **95th percentile of national values of wastewater discharge** `P_PWDIS` Anything with a P_ is the percentile  
+
+- LAcounty map 
+- census block group data
+
+figures:
+- base map = LAcounty
+- polygons = PWDIS
+- map layer = centroid block groups 
+- Color code groups > 95 percentile described in P_PWDIS
+- Scalebar and/or legend
+
+tools needed:
+- tmap
+
+
+psuedo code:
+
+
+
+testing plan:
+# LA County Wastewater Discharge of Census Block Groups Categorized by National Percentiles
 ```{r }
 tmap_mode('plot')
 
 LA_wastewater_discharge <- tm_shape(LAcounty) +
-   tm_polygons(LAcounty_blockgroup_centroids, 'PWDIS', 
+   tm_polygons('PWDIS', 
               #fill.scale = tm_scale_intervals(values ='PuRd'), 
               fill.legend = tm_legend(title = 'Wastewater Discharge by Census Block Groups')) + 
-  tm_graticules() 
+  tm_graticules() +
+  tm_shape(LAcountry_blockgroup_centroids)
 
 LA_wastewater_discharge
 ```
 Find the percent of census block groups that have:  
 - less than 5% of the population is considered low income
 (5 points)
+
+# Psuedo Code Game Planning
+dataset(s):
+
+- ejscreen_state
+- LAcounty map 
+- census block group data
+
+figures:
+- base map = LAcounty
+- polygons = Low income
+- map layer = centroid block groups 
+- Color code groups considered low income
+- Scalebar and/or legend
+
+tools needed:
+- tmap
+
+
+psuedo code:
+
+
+
+
+# LA County Percentage of Low Income in Census Block Groups
 ```{r }
 
 
@@ -102,6 +155,31 @@ Find the percent of census block groups that are:
 - above the 80th percentile for Particulate Matter 2.5 AND  
 - above the 80th percentile for Superfund proximity
 (10 points)
+
+
+# Psuedo Code Game Planning
+dataset(s):
+
+- ejscreen_national 
+- LAcounty map 
+- census block group data
+- filtered subset that meets requirements
+
+figures:
+- base map = LAcounty
+- polygons = PM25 > 80th P_PM25 & PNPL (Superfund proximity) > 80th P_PNPL
+- map layer = centroid block groups 
+- Color groups that meet both criteria 
+- Scalebar and/or legend
+
+tools needed:
+- tmap
+
+
+psuedo code:
+
+
+# LA County Census Block Groups above 80th Percentile of PM25 & PNPL
 ```{r }
 
 
@@ -116,6 +194,9 @@ LA_redlining <- st_read("https://dsl.richmond.edu/panorama/redlining/static/down
 
 Make a map of historical redlining boundaries, colored by HOLC grade.
 (5 points)
+
+
+
 ```{r  include=TRUE}
 LA_HOLC_grade <- LA_redlining %>% 
   mutate_at('name', ~replace_na(., "Los Angeles County")) %>% 
@@ -127,7 +208,7 @@ LA_HOLC_grade <- LA_redlining %>%
 ```{r  include=TRUE}
 tmap_mode('plot')
 
-LA_redlining_map <- tm_shape(LAcounty) +
+LA_redlining_map <- tm_shape(LA_HOLC_grade) +
   tm_shape(LA_HOLC_grade) + 
   tm_polygons(col = 'holc_id') +
   tm_graticules()
@@ -178,6 +259,8 @@ Please write 2-3 sentences reflecting on these results.
 For bird observations from 2022 that fall within neighborhoods with HOLC grads, find the percent of observations within each redlining categories and plot results.
 hint: make sure that the bird observations have the same CRS as redlining data.
 (20 points)
+
+Bar graph okay - Allie
 ````{r }
 
 
@@ -185,3 +268,8 @@ hint: make sure that the bird observations have the same CRS as redlining data.
 
 Please write 2-3 sentences reflecting on these results. Are they surprising? If so, why? What are some potential implications?
 (5 points)
+
+
+
+
+
