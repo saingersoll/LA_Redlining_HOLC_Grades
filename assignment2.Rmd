@@ -64,27 +64,26 @@ library(cowplot)
 Read in EJScreen data and filter to Los Angeles County
 (5 points)
 ```{r include=TRUE, eval=FALSE, warning=FALSE, error=FALSE}
-ejscreen_state <- st_read("../data/EJSCREEN_2023_BG_StatePct_with_AS_CNMI_GU_VI.gdb")
-
-ejscreen_national<- st_read("../data/EJSCREEN_2023_BG_with_AS_CNMI_GU_VI.gdb")
+ejscreen <- st_read("../data/EJSCREEN_2023_BG_StatePct_with_AS_CNMI_GU_VI.gdb")
 
 california <- ejscreen %>%
   filter(ST_ABBREV == "CA") 
 
 LAcounty <- ejscreen %>%
-  filter(CNTY_NAME %in% c("Los Angeles County"))
+  filter(CNTY_NAME %in% c("Los Angeles County"), na.rm = TRUE)
 
 LAcounty_mean <- aggregate(LAcounty, by = list(LAcounty$CNTY_NAME), FUN = mean)
 
 LAcounty_blockgroup_centroids <- st_centroid(LAcounty)
 ```
 
+
 Make a map of wastewater discharge (PWDIS) by census block groups. Indicate which census block groups are above the 95th percentile of national values for wastewater discharge by adding a centroid.
 (10 points)
 
 # Psuedo Code Game Planning
 dataset(s):
-- EJSCREEN_2023_BG_with_AS_CNMI_GU_VI.gdb  which is the national-level block group data, then the percentile is based off all block group data from 50 states + territories. **95th percentile of national values of wastewater discharge** `P_PWDIS` Anything with a P_ is the percentile  
+- EJSCREEN_2023_BG_with_AS_CNMI_GU_VI.gdb  which is the national-level block group data, then the percentile is based off all block group data from 50 states + territories. **95th percentile of national values of wastewater discharge** `P_PWDIS` Anything with a P_ is the percentile  0
 
 - LAcounty map 
 - census block group data
@@ -107,17 +106,25 @@ psuedo code:
 testing plan:
 # LA County Wastewater Discharge of Census Block Groups Categorized by National Percentiles
 ```{r }
+PWDIS_95TH = LAcounty_blockgroup_centroids$P_PWDIS > 0.95
+
+
+max(LAcounty$PWDIS)
+
+max(LAcounty$P_PWDIS)
+
 tmap_mode('plot')
 
-LA_wastewater_discharge <- tm_shape(LAcounty) +
-   tm_polygons('PWDIS', 
-              #fill.scale = tm_scale_intervals(values ='PuRd'), 
-              fill.legend = tm_legend(title = 'Wastewater Discharge by Census Block Groups')) + 
+LA_wastewater_discharge <- tm_shape(LAcounty) + 
+  tm_polygons('PWDIS') + 
   tm_graticules() +
-  tm_shape(LAcountry_blockgroup_centroids)
+  tm_shape(LAcounty_blockgroup_centroids) +
+  tm_borders('P_PWDIS'>0.95)
 
 LA_wastewater_discharge
+
 ```
+
 Find the percent of census block groups that have:  
 - less than 5% of the population is considered low income
 (5 points)
@@ -142,11 +149,39 @@ tools needed:
 
 psuedo code:
 
+Less than 5% LOWINCOME
+
+P_LOWINCOME_LT5 <- LAcounty_blockgroup_centroids$LOWINCOME < 0.05
+
+              palette =rev(hcl.colors(5,palette = 'Sunset'))
+              
+# Prepping Subsets for Plotting
+```{r}
+
+P_LOWINCOME_LT5 <- LAcounty_blockgroup_centroids[ which(LAcounty_blockgroup_centroids$LOWINPCT < 0.05),]
+
+head(P_LOWINCOME_LT5$P_PWDIS)
+
+```
 
 
+Find the percent of census block groups that have:  
+- less than 5% of the population is considered low income
+(5 points)
 
 # LA County Percentage of Low Income in Census Block Groups
 ```{r }
+tmap_mode('view')
+
+tm_shape(LAcounty) +
+  tm_polygons('LOWINCOME', 
+              palette = rev(hcl.colors(5,palette = 'Sunset')),
+              showNA = FALSE) +
+  tm_shape(P_LOWINCOME_LT5) +
+  tm_bubbles(size = 'P_PWDIS',
+             fill = 'red', 
+             lwd.free = NA) + 
+  tm_graticules() 
 
 
 ```
@@ -182,6 +217,17 @@ psuedo code:
 # LA County Census Block Groups above 80th Percentile of PM25 & PNPL
 ```{r }
 
+tmap_mode('view')
+
+tm_shape(LAcounty) +
+  tm_polygons() +
+  tm_bubbles(size = "PM25",
+             fill = "pink",
+             col = "orange") +
+  tm_bubbles('PNPL',
+          fill = "magenta",
+          col = "blue") +
+   tm_graticules() 
 
 ```
 

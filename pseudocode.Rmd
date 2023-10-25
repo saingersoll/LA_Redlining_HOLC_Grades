@@ -1,0 +1,166 @@
+---
+title: 'EDS 223: assignment 2'
+author: "Sofia Ingersoll"
+output: html_document
+date: "2023-10-28"
+---
+#QUESTIONS
+
+- What do we input for CRS? WG 84 and ESPG 3857 are not working
+- Is anything considered raster data?
+- The numbers in the P_data columns are percentiles written as decimals - yes?
+- Why is my data displaying the wrong things :\
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(include = TRUE, message = FALSE, warning = FALSE)
+```
+Load relevant packages.
+```{r include=TRUE, eval=FALSE}
+library(tidyverse)
+library(sf)
+library(patchwork)
+library(raster)
+library(ggspatial)
+library(tmap)
+library(tmaptools)
+library(cowplot)
+library(terra)
+```
+
+Read in EJScreen data and filter to Los Angeles County
+(5 points)
+```{r include=TRUE, eval=FALSE, warning=FALSE, error=FALSE}
+ejscreen <- st_read("../data/EJSCREEN_2023_BG_StatePct_with_AS_CNMI_GU_VI.gdb")
+
+terra::crs(ejscreen)
+
+california <- ejscreen %>%
+  filter(ST_ABBREV == "CA") 
+
+LAcounty <- ejscreen %>%
+  filter(CNTY_NAME %in% c("Los Angeles County"), na.rm = TRUE)
+
+LAcounty_mean <- aggregate(LAcounty, by = list(LAcounty$CNTY_NAME), FUN = mean)
+
+LAcounty_blockgroup_centroids <- st_centroid(LAcounty)
+```
+Make a map of wastewater discharge (PWDIS) by census block groups. Indicate which census block groups are above the 95th percentile of national values for wastewater discharge by adding a centroid.
+(10 points)
+```{r}
+tmap_mode('plot')
+
+LA_wastewater_discharge <- tm_shape(LAcounty) + 
+  tm_polygons('PWDIS') + 
+  tm_graticules() +
+  tm_shape(LAcounty_blockgroup_centroids) +
+  tm_borders('P_PWDIS'>0.95)
+
+LA_wastewater_discharge
+```
+
+```{r}
+plot(st_geometry(LAcounty), axes = TRUE, graticule = TRUE)
+plot(points['P_PWDIS'])
+
+```
+Find the percent of census block groups that have:  
+- less than 5% of the population is considered low income
+(5 points)
+```{r}
+tmap_mode('view')
+
+tm_shape(LAcounty) +
+  tm_polygons('LOWINCOME', 
+              palette = rev(hcl.colors(5,palette = 'Sunset')),
+              showNA = FALSE) +
+  tm_shape(P_LOWINCOME_LT5) +
+  tm_bubbles(size = 'P_PWDIS',
+             fill = 'red', 
+             lwd.free = NA) +
+   tm_graticules() 
+```
+Find the percent of census block groups that are:    
+- above the 80th percentile for Particulate Matter 2.5 AND  
+- above the 80th percentile for Superfund proximity
+(10 points)
+```{r}
+tmap_mode('plot')
+
+tm_shape(LAcounty) +
+  tm_polygons() +
+  tm_bubbles(size = "PM25",
+             fill = "pink",
+             col = "orange") +
+  tm_dots('PNPL',
+          fill = "violet") +
+   tm_graticules() 
+```
+Import redlining information for Los Angeles.
+```{r include=TRUE, eval=FALSE, warning=FALSE, error=FALSE}
+LA_redlining <- st_read("https://dsl.richmond.edu/panorama/redlining/static/downloads/geojson/CALosAngeles1939.geojson") %>%
+  st_make_valid()
+
+```
+
+Make a map of historical redlining boundaries, colored by HOLC grade.
+(5 points)
+```{r}
+tmap_mode('plot')
+
+LA_redlining_map <- tm_shape(LA_HOLC_grade) +
+  tm_shape(LA_HOLC_grade) + 
+  tm_polygons(col = 'holc_id') +
+  tm_graticules()
+
+LA_redlining_map
+```
+Find the number of census block groups that fall within areas with HOLC grades
+hint: make sure the CRS match
+(15 points)
+```{r eval=FALSE}
+
+```
+
+Summarize current conditions based on EJScreen data within historical redlining categories using the mean of the following variables:  
+-% low income.  
+- percentile for particulate Matter 2.5.  
+- percentile for low life expectancy.  
+- percentile for air toxics cancer risk
+(20 points)
+```{r }
+
+
+```
+
+Please write 2-3 sentences reflecting on these results.
+(5 points)
+
+
+
+
+
+
+
+
+
+
+### Investigate the legacy of redlining in biodiversity observations
+
+For bird observations from 2022 that fall within neighborhoods with HOLC grads, find the percent of observations within each redlining categories and plot results.
+hint: make sure that the bird observations have the same CRS as redlining data.
+(20 points)
+
+Bar graph okay - Allie
+````{r }
+
+
+```
+
+Please write 2-3 sentences reflecting on these results. Are they surprising? If so, why? What are some potential implications?
+(5 points)
+
+
+
+
+
+
