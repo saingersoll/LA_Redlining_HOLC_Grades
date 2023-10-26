@@ -81,89 +81,27 @@ LAcounty_blockgroup_centroids <- st_centroid(LAcounty)
 Make a map of wastewater discharge (PWDIS) by census block groups. Indicate which census block groups are above the 95th percentile of national values for wastewater discharge by adding a centroid.
 (10 points)
 
-# Psuedo Code Game Planning
-dataset(s):
-- EJSCREEN_2023_BG_with_AS_CNMI_GU_VI.gdb  which is the national-level block group data, then the percentile is based off all block group data from 50 states + territories. **95th percentile of national values of wastewater discharge** `P_PWDIS` Anything with a P_ is the percentile  0
-
-- LAcounty map 
-- census block group data
-
-figures:
-- base map = LAcounty
-- polygons = PWDIS
-- map layer = centroid block groups 
-- Color code groups > 95 percentile described in P_PWDIS
-- Scalebar and/or legend
-
-tools needed:
-- tmap
-
-
-psuedo code:
-
-
-
-testing plan:
 # LA County Wastewater Discharge of Census Block Groups Categorized by National Percentiles
 ```{r }
-PWDIS_95TH = LAcounty_blockgroup_centroids$P_PWDIS > 0.95
+LA <- ejscreen %>% 
+  filter(CNTY_NAME %in% c("Los Angeles County"))
 
+LA_95 <- LA %>%
+  filter(P_PWDIS > 95)
 
-max(LAcounty$PWDIS)
+tmap_mode ('plot')
 
-max(LAcounty$P_PWDIS)
-
-tmap_mode('plot')
-
-LA_wastewater_discharge <- tm_shape(LAcounty) + 
-  tm_polygons('PWDIS') + 
-  tm_graticules() +
-  tm_shape(LAcounty_blockgroup_centroids) +
-  tm_borders('P_PWDIS'>0.95)
+LA_wastewater_discharge <- tm_shape(LA) + 
+  tm_fill(fill = "P_PWDIS",
+          fill.scale = tm_scale(breaks = c(5,15,25.35,45,55,65,75,85,95,100)), 
+          fill.legend = tm_legend(title = "Percentiles")) +
+  tm_shape(LA_95) +
+  tm_symbols(size = 0.1,
+             col = "red") +
+  tm_graticules()
 
 LA_wastewater_discharge
-
 ```
-
-Find the percent of census block groups that have:  
-- less than 5% of the population is considered low income
-(5 points)
-
-# Psuedo Code Game Planning
-dataset(s):
-
-- ejscreen_state
-- LAcounty map 
-- census block group data
-
-figures:
-- base map = LAcounty
-- polygons = Low income
-- map layer = centroid block groups 
-- Color code groups considered low income
-- Scalebar and/or legend
-
-tools needed:
-- tmap
-
-
-psuedo code:
-
-Less than 5% LOWINCOME
-
-P_LOWINCOME_LT5 <- LAcounty_blockgroup_centroids$LOWINCOME < 0.05
-
-              palette =rev(hcl.colors(5,palette = 'Sunset'))
-              
-# Prepping Subsets for Plotting
-```{r}
-
-P_LOWINCOME_LT5 <- LAcounty_blockgroup_centroids[ which(LAcounty_blockgroup_centroids$LOWINPCT < 0.05),]
-
-head(P_LOWINCOME_LT5$P_PWDIS)
-
-```
-
 
 Find the percent of census block groups that have:  
 - less than 5% of the population is considered low income
@@ -171,66 +109,36 @@ Find the percent of census block groups that have:
 
 # LA County Percentage of Low Income in Census Block Groups
 ```{r }
-tmap_mode('view')
+LA_5 <- LA %>%
+  filter(P_LOWINCPCT <= 5)
 
-tm_shape(LAcounty) +
-  tm_polygons('LOWINCOME', 
-              palette = rev(hcl.colors(5,palette = 'Sunset')),
-              showNA = FALSE) +
-  tm_shape(P_LOWINCOME_LT5) +
-  tm_bubbles(size = 'P_PWDIS',
-             fill = 'red', 
-             lwd.free = NA) + 
-  tm_graticules() 
+tmap_mode ('plot')
 
+LA_LowIncome_map <- tm_shape(LA) + 
+  tm_fill(fill = "LOWINCOME",
+          fill.scale = tm_scale(breaks = c(5,15,25.35,45,55,65,75,85,95,100)), 
+          fill.legend = tm_legend(title = "Percentiles")) +
+  tm_shape(LA_5) +
+  tm_symbols(size = 0.1,
+             col = "red") +
+  tm_graticules()
 
+LA_LowIncome_map
 ```
-
 Find the percent of census block groups that are:    
 - above the 80th percentile for Particulate Matter 2.5 AND  
 - above the 80th percentile for Superfund proximity
 (10 points)
 
-
-# Psuedo Code Game Planning
-dataset(s):
-
-- ejscreen_national 
-- LAcounty map 
-- census block group data
-- filtered subset that meets requirements
-
-figures:
-- base map = LAcounty
-- polygons = PM25 > 80th P_PM25 & PNPL (Superfund proximity) > 80th P_PNPL
-- map layer = centroid block groups 
-- Color groups that meet both criteria 
-- Scalebar and/or legend
-
-tools needed:
-- tmap
-
-
-psuedo code:
-
-
 # LA County Census Block Groups above 80th Percentile of PM25 & PNPL
 ```{r }
+LA_80 <- LA %>%
+  filter(P_PM25 > 80 & P_PNPL > 80)
 
-tmap_mode('view')
+above80 <- (nrow(LA_80)/nrow(LA))*100
 
-tm_shape(LAcounty) +
-  tm_polygons() +
-  tm_bubbles(size = "PM25",
-             fill = "pink",
-             col = "orange") +
-  tm_bubbles('PNPL',
-          fill = "magenta",
-          col = "blue") +
-   tm_graticules() 
-
+print(above80)
 ```
-
 Import redlining information for Los Angeles.
 ```{r include=TRUE, eval=FALSE, warning=FALSE, error=FALSE}
 LA_redlining <- st_read("https://dsl.richmond.edu/panorama/redlining/static/downloads/geojson/CALosAngeles1939.geojson") %>%
@@ -241,39 +149,25 @@ LA_redlining <- st_read("https://dsl.richmond.edu/panorama/redlining/static/down
 Make a map of historical redlining boundaries, colored by HOLC grade.
 (5 points)
 
-
-
 ```{r  include=TRUE}
-LA_HOLC_grade <- LA_redlining %>% 
-  mutate_at('name', ~replace_na(., "Los Angeles County")) %>% 
-  rename("CNTY_NAME" = "name")
+LA_HOLC_grades <- LA_redlining %>% 
+  group_by('holdc_grade')
 
-```
-
-
-```{r  include=TRUE}
 tmap_mode('plot')
 
-LA_redlining_map <- tm_shape(LA_HOLC_grade) +
-  tm_shape(LA_HOLC_grade) + 
-  tm_polygons(col = 'holc_id') +
+LA_HOLC_Map <- tm_shape(LA_HOLC_grades) + 
+  tm_fill(fill = 'holc_grade', palette = c('green', 'blue', 'yellow', 'red')) +
   tm_graticules()
 
-LA_redlining_map
+LA_HOLC_Map
 ```
-
-
-```{r  include=TRUE}
-redlining_map <- tm_shape(LAcounty) + 
-  tm_shape(LA_redlining)
-
-redlining_map
-```
-
 Find the number of census block groups that fall within areas with HOLC grades
 hint: make sure the CRS match
 (15 points)
 ```{r eval=FALSE}
+crs(LA)                               # EPSG3857 -> LA
+crs(LA_redlining)                     # EPSG4326 -> redlining
+
 
 ```
 

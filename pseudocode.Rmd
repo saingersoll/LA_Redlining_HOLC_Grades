@@ -1,6 +1,6 @@
 ---
 title: 'EDS 223: assignment 2'
-author: "Sofia Ingersoll"
+author: "Sofia Ingersoll & Heather Childers"
 output: html_document
 date: "2023-10-28"
 ---
@@ -38,7 +38,7 @@ california <- ejscreen %>%
   filter(ST_ABBREV == "CA") 
 
 LAcounty <- ejscreen %>%
-  filter(CNTY_NAME %in% c("Los Angeles County"), na.rm = TRUE)
+  filter(CNTY_NAME %in% c("Los Angeles County"))
 
 LAcounty_mean <- aggregate(LAcounty, by = list(LAcounty$CNTY_NAME), FUN = mean)
 
@@ -46,79 +46,84 @@ LAcounty_blockgroup_centroids <- st_centroid(LAcounty)
 ```
 Make a map of wastewater discharge (PWDIS) by census block groups. Indicate which census block groups are above the 95th percentile of national values for wastewater discharge by adding a centroid.
 (10 points)
-```{r}
-tmap_mode('plot')
 
-LA_wastewater_discharge <- tm_shape(LAcounty) + 
-  tm_polygons('PWDIS') + 
-  tm_graticules() +
-  tm_shape(LAcounty_blockgroup_centroids) +
-  tm_borders('P_PWDIS'>0.95)
-
-LA_wastewater_discharge
-```
+NEED BOTTOM COORDINATES
 
 ```{r}
-plot(st_geometry(LAcounty), axes = TRUE, graticule = TRUE)
-plot(points['P_PWDIS'])
+LA <- ejscreen %>% 
+  filter(CNTY_NAME %in% c("Los Angeles County"))
 
+LA_95 <- LA %>%
+  filter(P_PWDIS > 95)
+
+tmap_mode ('plot')
+
+tm_shape(LA) + 
+  tm_fill(fill = "P_PWDIS",
+          fill.scale = tm_scale(breaks = c(5,15,25.35,45,55,65,75,85,95,100)), 
+          fill.legend = tm_legend(title = "Percentiles")) +
+  tm_shape(LA_95) +
+  tm_symbols(size = 0.1,
+             col = "red") + 
+  tm_graticules()
 ```
+
 Find the percent of census block groups that have:  
 - less than 5% of the population is considered low income
 (5 points)
 ```{r}
-tmap_mode('view')
+LA_5 <- LA %>%
+  filter(P_LOWINCPCT <= 5)
 
-tm_shape(LAcounty) +
-  tm_polygons('LOWINCOME', 
-              palette = rev(hcl.colors(5,palette = 'Sunset')),
-              showNA = FALSE) +
-  tm_shape(P_LOWINCOME_LT5) +
-  tm_bubbles(size = 'P_PWDIS',
-             fill = 'red', 
-             lwd.free = NA) +
-   tm_graticules() 
+tmap_mode ('plot')
+
+LA_LowIncome_map <- tm_shape(LA) + 
+  tm_fill(fill = "LOWINCOME",
+          fill.scale = tm_scale(breaks = c(5,15,25.35,45,55,65,75,85,95,100)), 
+          fill.legend = tm_legend(title = "Percentiles")) +
+  tm_shape(LA_5) +
+  tm_symbols(size = 0.1,
+             col = "red") + 
+  tm_graticules()
+
+LA_LowIncome_map
 ```
 Find the percent of census block groups that are:    
 - above the 80th percentile for Particulate Matter 2.5 AND  
 - above the 80th percentile for Superfund proximity
 (10 points)
 ```{r}
-tmap_mode('plot')
+LA_80 <- LA %>%
+  filter(P_PM25 > 80 & P_PNPL > 80)
 
-tm_shape(LAcounty) +
-  tm_polygons() +
-  tm_bubbles(size = "PM25",
-             fill = "pink",
-             col = "orange") +
-  tm_dots('PNPL',
-          fill = "violet") +
-   tm_graticules() 
+above80 <- (nrow(LA_80)/nrow(LA))*100
+
+print(above80)
 ```
 Import redlining information for Los Angeles.
 ```{r include=TRUE, eval=FALSE, warning=FALSE, error=FALSE}
 LA_redlining <- st_read("https://dsl.richmond.edu/panorama/redlining/static/downloads/geojson/CALosAngeles1939.geojson") %>%
   st_make_valid()
-
 ```
-
 Make a map of historical redlining boundaries, colored by HOLC grade.
 (5 points)
 ```{r}
+LA_HOLC_grades <- LA_redlining %>% 
+  group_by('holdc_grade')
+
 tmap_mode('plot')
 
-LA_redlining_map <- tm_shape(LA_HOLC_grade) +
-  tm_shape(LA_HOLC_grade) + 
-  tm_polygons(col = 'holc_id') +
+tm_shape(LA_HOLC_grades) + 
+  tm_fill(fill = 'holc_grade', palette = c('green', 'blue', 'yellow', 'red')) +
   tm_graticules()
 
-LA_redlining_map
 ```
 Find the number of census block groups that fall within areas with HOLC grades
 hint: make sure the CRS match
 (15 points)
 ```{r eval=FALSE}
 
+only a number
 ```
 
 Summarize current conditions based on EJScreen data within historical redlining categories using the mean of the following variables:  
@@ -128,7 +133,7 @@ Summarize current conditions based on EJScreen data within historical redlining 
 - percentile for air toxics cancer risk
 (20 points)
 ```{r }
-
+only a number
 
 ```
 
@@ -152,7 +157,7 @@ hint: make sure that the bird observations have the same CRS as redlining data.
 
 Bar graph okay - Allie
 ````{r }
-
+group_by holc & find average for each 
 
 ```
 
