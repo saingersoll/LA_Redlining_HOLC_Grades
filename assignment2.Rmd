@@ -110,6 +110,18 @@ Find the percent of census block groups that have:
 # LA County Percentage of Low Income in Census Block Groups
 ```{r }
 LA_5 <- LA %>%
+  filter(LOWINCPCT < .05)
+
+below5 <- (nrow(LA_5)/nrow(LA))*100
+
+print(below5)
+```
+
+# Extra Visual (made on accident)
+```{r }
+
+
+LA_5 <- LA %>%
   filter(P_LOWINCPCT <= 5)
 
 tmap_mode ('plot')
@@ -169,6 +181,7 @@ crs(LA)                               # EPSG3857 -> LA
 crs(LA_redlining)                     # EPSG4326 -> redlining
 
 
+st_transform(LA, crs = st_crs(4326))
 ```
 
 Summarize current conditions based on EJScreen data within historical redlining categories using the mean of the following variables:  
@@ -202,8 +215,25 @@ hint: make sure that the bird observations have the same CRS as redlining data.
 
 Bar graph okay - Allie
 ````{r }
+bird_data <- st_read("../data/gbif-birds-LA")
+
+birds_22 <- bird_data %>% 
+  filter(year == 2022)
 
 
+redline_birds <- st_join(x = LA_redlining, y = birds_22, join = st_intersects, left = FALSE)
+
+holc_birds <- redline_birds %>% 
+  group_by(holc_grade) %>% 
+  summarize(count = n()) %>% 
+  mutate(percentage = (count/sum(count)) * 100)
+
+holc_birds$percentage
+
+ggplot(holc_birds, aes(x = holc_grade, y = percentage, fill = holc_grade)) + 
+  geom_bar(stat = 'identity') +
+  labs(title = "HOLC Block Bird Observations 2022") +
+  
 ```
 
 Please write 2-3 sentences reflecting on these results. Are they surprising? If so, why? What are some potential implications?
