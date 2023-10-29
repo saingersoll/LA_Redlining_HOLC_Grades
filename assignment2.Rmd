@@ -192,7 +192,31 @@ Summarize current conditions based on EJScreen data within historical redlining 
 (20 points)
 ```{r }
 
+LA_EJ_redline <- st_join(x = LA_redlining, y = LA, join = st_intersects, left = FALSE)
 
+lowincpct <- LA_EJ_redline %>% 
+  group_by(holc_grade) %>% 
+  mutate(PM25_avg = mean(LOWINCPCT)) %>% 
+           print(lowincpct)
+
+
+particulate_matter <- LA_EJ_redline %>% 
+  group_by(holc_grade) %>% 
+  mutate(PM25_avg = mean(PM25)) %>%
+           print(PM25_avg)
+
+  
+low_life_expectancy <- LA_EJ_redline %>% 
+  group_by(holc_grade) %>% 
+  mutate(PM25_avg = mean(LIFEEXPPCT)) %>%
+           print(low_life_expectancy)
+  
+  
+air_toxic_Cancer_risk <- LA_EJ_redline %>% 
+  group_by(holc_grade) %>% 
+  mutate(PM25_avg = mean(CANCER)) %>%
+           print(air_toxic_Cancer_risk)
+  
 ```
 
 Please write 2-3 sentences reflecting on these results.
@@ -213,7 +237,6 @@ For bird observations from 2022 that fall within neighborhoods with HOLC grads, 
 hint: make sure that the bird observations have the same CRS as redlining data.
 (20 points)
 
-Bar graph okay - Allie
 ````{r }
 bird_data <- st_read("../data/gbif-birds-LA")
 
@@ -230,9 +253,12 @@ holc_birds <- redline_birds %>%
 
 holc_birds$percentage
 
+colors <- c('green','blue','yellow','red')
+
 ggplot(holc_birds, aes(x = holc_grade, y = percentage, fill = holc_grade)) + 
   geom_bar(stat = 'identity') +
   labs(title = "HOLC Block Bird Observations 2022") +
+  scale_fill_manual(values = colors)
   
 ```
 
