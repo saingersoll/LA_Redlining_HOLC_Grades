@@ -119,8 +119,6 @@ print(below5)
 
 # Extra Visual (made on accident)
 ```{r }
-
-
 LA_5 <- LA %>%
   filter(P_LOWINCPCT <= 5)
 
@@ -155,7 +153,6 @@ Import redlining information for Los Angeles.
 ```{r include=TRUE, eval=FALSE, warning=FALSE, error=FALSE}
 LA_redlining <- st_read("https://dsl.richmond.edu/panorama/redlining/static/downloads/geojson/CALosAngeles1939.geojson") %>%
   st_make_valid()
-
 ```
 
 Make a map of historical redlining boundaries, colored by HOLC grade.
@@ -181,7 +178,13 @@ crs(LA)                               # EPSG3857 -> LA
 crs(LA_redlining)                     # EPSG4326 -> redlining
 
 
-st_transform(LA, crs = st_crs(4326))
+LA_redlining_summary_data <- st_transform(LA_redlining, crs = st_crs(3857))
+
+st_set_crs(LA, 3857)
+
+st_crs(LA) <- 4326
+
+crs(LA_redlining_summary_data)
 ```
 
 Summarize current conditions based on EJScreen data within historical redlining categories using the mean of the following variables:  
@@ -190,45 +193,61 @@ Summarize current conditions based on EJScreen data within historical redlining 
 - percentile for low life expectancy.  
 - percentile for air toxics cancer risk
 (20 points)
+### Joining Data
 ```{r }
+LA_EJ_redline <- st_join(x = LA_redlining_summary_data, y = LA, join = st_intersects, left = FALSE)
+```
 
-LA_EJ_redline <- st_join(x = LA_redlining, y = LA, join = st_intersects, left = FALSE)
-
+## % Low Income
+```{r }
 lowincpct <- LA_EJ_redline %>% 
   group_by(holc_grade) %>% 
-  mutate(PM25_avg = mean(LOWINCPCT)) %>% 
-           print(lowincpct)
+   summarize(count = n()) %>% 
+  mutate(lowincpct_avg = mean(LA_EJ_redline$LOWINCPCT)) %>% 
+          print(lowincpct)
+```
+## Percentile for Particulate Matter 2.5.
 
-
+```{r }
 particulate_matter <- LA_EJ_redline %>% 
   group_by(holc_grade) %>% 
-  mutate(PM25_avg = mean(PM25)) %>%
+   summarize(count = n()) %>% 
+  mutate(PM25_avg = mean(LA_EJ_redline$PM25)) %>%
            print(PM25_avg)
+```
+##  Percentile for Low Life Expectancy. 
 
-  
+```{r }
 low_life_expectancy <- LA_EJ_redline %>% 
   group_by(holc_grade) %>% 
-  mutate(PM25_avg = mean(LIFEEXPPCT)) %>%
-           print(low_life_expectancy)
-  
-  
+   summarize(count = n()) %>% 
+  mutate(low_life_expct_avg = mean(LA_EJ_redline$LIFEEXPPCT)) %>%
+           print(low_life_expectancy$low_life_expct_avg)
+```
+## Percentile for Air Toxics Cancer Risk
+
+```{r }
 air_toxic_Cancer_risk <- LA_EJ_redline %>% 
   group_by(holc_grade) %>% 
-  mutate(PM25_avg = mean(CANCER)) %>%
-           print(air_toxic_Cancer_risk)
-  
+   summarize(count = n()) %>% 
+  mutate(cancer_avg = mean(LA_EJ_redline$CANCER)) %>%
+           print(air_toxic_Cancer_risk$cancer_avg)
+```
+```{r}
+holc_birds$percentage
+
+colors <- c('green','blue','yellow','red')
+
+ggplot(holc_birds, aes(x = holc_grade, y = percentage, fill = holc_grade)) + 
+  geom_bar(stat = 'identity') +
+  labs(title = "HOLC Block Bird Observations 2022") +
+  scale_fill_manual(values = colors)
 ```
 
 Please write 2-3 sentences reflecting on these results.
 (5 points)
 
-
-
-
-
-
-
-
+As expected, the redlined districts C and D exhibited higher ratings of average particulate matter in the air, low life expectancy, and cancerous air toxicities. The block groups B and C were the highest for the low income averages.
 
 
 ### Investigate the legacy of redlining in biodiversity observations
