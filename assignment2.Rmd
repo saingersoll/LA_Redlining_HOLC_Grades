@@ -233,16 +233,6 @@ air_toxic_Cancer_risk <- LA_EJ_redline %>%
   mutate(cancer_avg = mean(LA_EJ_redline$CANCER)) %>%
            print(air_toxic_Cancer_risk$cancer_avg)
 ```
-```{r}
-holc_birds$percentage
-
-colors <- c('green','blue','yellow','red')
-
-ggplot(holc_birds, aes(x = holc_grade, y = percentage, fill = holc_grade)) + 
-  geom_bar(stat = 'identity') +
-  labs(title = "HOLC Block Bird Observations 2022") +
-  scale_fill_manual(values = colors)
-```
 
 Please write 2-3 sentences reflecting on these results.
 (5 points)
