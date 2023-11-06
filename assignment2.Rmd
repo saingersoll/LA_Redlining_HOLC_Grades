@@ -66,11 +66,8 @@ Read in EJScreen data and filter to Los Angeles County
 ```{r include=TRUE, eval=FALSE, warning=FALSE, error=FALSE}
 ejscreen <- st_read("../data/EJSCREEN_2023_BG_StatePct_with_AS_CNMI_GU_VI.gdb")
 
-california <- ejscreen %>%
-  filter(ST_ABBREV == "CA") 
-
 LAcounty <- ejscreen %>%
-  filter(CNTY_NAME %in% c("Los Angeles County"), na.rm = TRUE)
+  filter(CNTY_NAME %in% c("Los Angeles County"))
 
 LAcounty_mean <- aggregate(LAcounty, by = list(LAcounty$CNTY_NAME), FUN = mean)
 
