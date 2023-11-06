@@ -142,12 +142,6 @@ Read in EJScreen data and filter to Los Angeles County (5 points)
 ```{r include=TRUE, eval=FALSE, warning=FALSE, error=FALSE}
 ejscreen <- st_read("../data/EJSCREEN_2023_BG_StatePct_with_AS_CNMI_GU_VI.gdb")
 
-california <- ejscreen %>%
-  filter(ST_ABBREV == "CA") 
-
-LAcounty <- ejscreen %>%
-  filter(CNTY_NAME %in% c("Los Angeles County"), na.rm = TRUE)
-
 LAcounty_mean <- aggregate(LAcounty, by = list(LAcounty$CNTY_NAME), FUN = mean)
 
 LAcounty_blockgroup_centroids <- st_centroid(LAcounty)
@@ -260,7 +254,7 @@ grades hint: make sure the CRS match (15 points)
 
 \*\*corrected\*\*
 
-### CRS 
+### CRS
 
 ```{r}
 crs(LA)                               # EPSG3857 -> LA
@@ -271,7 +265,7 @@ LA_redlining_summary_data <- st_transform(LA, crs = st_crs(LA_redlining))
 
 ```
 
-### st_within 
+### st_within
 
 ```{r}
 #plot(LA_redlining_summary_data["ID"])
@@ -304,7 +298,7 @@ redlining categories using the mean of the following variables:\
 
 **-20 code does not run**
 
-### Joining Data
+### Joining Data & Summarizing in a Single Chunk
 
 ```{r }
 LA_EJ_redline <- st_intersection(LA_redlining, LA_redlining_summary_data)
@@ -313,7 +307,7 @@ LA_EJ_redline %>%
   group_by(holc_grade) %>% 
   summarize(lowincpct = mean(LOWINCPCT, na.rm = TRUE),
             pm25 = mean(P_PM25, na.rm = TRUE),
-            lifeexpect = mean(P_LIFEEXPECT, na.rm = TRUE),
+            lifeexppct = mean(P_LIFEEXPPCT, na.rm = TRUE),
             cancer = mean(CANCER, na.rm = TRUE))
 ```
 
