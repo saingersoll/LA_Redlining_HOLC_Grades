@@ -120,9 +120,7 @@ typically include a location and date that a species was observed.
 
 We will be working observations of birds from 2021 onward.
 
-## Assignment
-
-### Investigate the legacy of redlining in current environmental (in)justice
+### Investigating the legacy of redlining in current environmental injustice
 
 Load relevant packages.
 
@@ -147,12 +145,11 @@ LAcounty_mean <- aggregate(LAcounty, by = list(LAcounty$CNTY_NAME), FUN = mean)
 LAcounty_blockgroup_centroids <- st_centroid(LAcounty)
 ```
 
-Make a map of wastewater discharge (PWDIS) by census block groups.
-Indicate which census block groups are above the 95th percentile of
-national values for wastewater discharge by adding a centroid. (10
-points)
-
 # LA County Wastewater Discharge of Census Block Groups Categorized by National Percentiles
+
+Making a map of wastewater discharge (PWDIS) by census block groups.
+Indicate which census block groups are above the 95th percentile of
+national values for wastewater discharge by adding a centroid.
 
 ```{r }
 LA <- ejscreen %>% 
@@ -175,10 +172,10 @@ LA_wastewater_discharge <- tm_shape(LA) +
 LA_wastewater_discharge
 ```
 
-Find the percent of census block groups that have:\
-- less than 5% of the population is considered low income (5 points)
-
 # LA County Percentage of Low Income in Census Block Groups
+
+Finding the percent of census block groups that have less than 5% of the
+population is considered low income.
 
 ```{r }
 LA_5 <- LA %>%
@@ -189,7 +186,7 @@ below5 <- (nrow(LA_5)/nrow(LA))*100
 print(below5)
 ```
 
-# Extra Visual (made on accident)
+#### Extra Visual
 
 ```{r }
 LA_5 <- LA %>%
@@ -209,11 +206,11 @@ LA_LowIncome_map <- tm_shape(LA) +
 LA_LowIncome_map
 ```
 
-Find the percent of census block groups that are:\
-- above the 80th percentile for Particulate Matter 2.5 AND\
-- above the 80th percentile for Superfund proximity (10 points)
-
 # LA County Census Block Groups above 80th Percentile of PM25 & PNPL
+
+Finding the percent of census block groups that are above the 80th
+percentile for Particulate Matter 2.5 & above the 80th percentile for
+Superfund proximity.
 
 ```{r }
 LA_80 <- LA %>%
@@ -231,8 +228,7 @@ LA_redlining <- st_read("https://dsl.richmond.edu/panorama/redlining/static/down
   st_make_valid()
 ```
 
-Make a map of historical redlining boundaries, colored by HOLC grade. (5
-points)
+Making a map of historical redlining boundaries, colored by HOLC grade.
 
 ```{r  include=TRUE}
 LA_HOLC_grades <- LA_redlining %>% 
@@ -247,14 +243,10 @@ LA_HOLC_Map <- tm_shape(LA_HOLC_grades) +
 LA_HOLC_Map
 ```
 
-Find the number of census block groups that fall within areas with HOLC
-grades hint: make sure the CRS match (15 points)
-
-**-15 did not complete problem**
-
-\*\*corrected\*\*
-
 ### CRS
+
+Finding the number of census block groups that fall within areas with
+HOLC grades.
 
 ```{r}
 crs(LA)                               # EPSG3857 -> LA
@@ -289,14 +281,12 @@ print(paste("The number of census block groups that intersect with HOLC grade ar
 
 ```
 
-Summarize current conditions based on EJScreen data within historical
+Summarizing current conditions based on EJScreen data within historical
 redlining categories using the mean of the following variables:\
 -% low income.\
 - percentile for particulate Matter 2.5.\
 - percentile for low life expectancy.\
 - percentile for air toxics cancer risk (20 points)
-
-**-20 code does not run**
 
 ### Joining Data & Summarizing in a Single Chunk
 
@@ -310,8 +300,6 @@ LA_EJ_redline %>%
             lifeexppct = mean(P_LIFEEXPPCT, na.rm = TRUE),
             cancer = mean(CANCER, na.rm = TRUE))
 ```
-
-Please write 2-3 sentences reflecting on these results. (5 points)
 
 As expected, the redlined districts C and D exhibited higher ratings of
 average particulate matter in the air, low life expectancy, and
@@ -345,9 +333,6 @@ holc_grade)) + geom_bar(stat = 'identity') + labs(title = "HOLC Block
 Bird Observations 2022") + scale_fill_manual(values = colors)
 
 \`\`\`
-
-Please write 2-3 sentences reflecting on these results. Are they
-surprising? If so, why? What are some potential implications? (5 points)
 
 The HOLC block bird observations are surprising because the lower graded
 regions, C and D blocks displayed the highest percentage of bird
