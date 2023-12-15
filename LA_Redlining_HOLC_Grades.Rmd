@@ -1,5 +1,5 @@
 ---
-title: 'EDS 223: assignment 2'
+title: 'LA Redlining & HOLC Grades Biodiversity Observations'
 author: "Sofia Ingersoll"
 output: html_document
 date: "2023-10-28"
